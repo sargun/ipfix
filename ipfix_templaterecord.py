@@ -36,6 +36,5 @@ class ipfix_templaterecord(ipfix_record.ipfix_record):
 		fields = []
 		def populate(self, fd):
 			for i in self.fields:
-				print "Setting field: %s" % i
-				
-#				i.readField(
+				print "Setting field: %s" % i			
+				i.readField(self, fd)
