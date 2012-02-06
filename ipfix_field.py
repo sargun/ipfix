@@ -1,4 +1,4 @@
-import struct
+import struct, types
 
 HEADER_FORMAT = "!HH"
 PEN_FORMAT="!I"
@@ -9,6 +9,7 @@ class ipfix_field:
 	def __init__(self, Template, fd):
 		self.Template = Template
 		self.readHeader(fd)
+		self.setup_realfield()
 	def readHeader(self, fd):
 		HeaderBin = fd.read(struct.calcsize(HEADER_FORMAT))
 		self.InformationElementID, \
@@ -32,3 +33,15 @@ class ipfix_field:
 
 		else:
 			self.PEN = None
+	def setup_realfield(self):
+		pass
+	def get_realfield(self):
+		realfield = self.ipfix_realfield()
+		realfield.InformationElementID = self.InformationElementID
+		realfield.FieldLength = self.FieldLength
+		realfield.PEN = self.PEN
+		return realfield
+	class ipfix_realfield:
+		def __repr__(self):
+			return '<ipfix_realfield, ID: %s>' % (self.InformationElementID)
+			
