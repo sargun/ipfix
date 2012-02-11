@@ -9,6 +9,7 @@ PEN_BIT = (0x1 << 15)
 XML = file("ipfix.xml").read()
 UINT_BY_LEN = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}
 INT_BY_LEN = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}
+REV_BIT = (0x1 << 14)
 
 class ipfix_field:
 	def __init__(self, Template, fd):
@@ -34,10 +35,14 @@ class ipfix_field:
 		if self.HasPEN:
 			PENBin = fd.read(struct.calcsize(PEN_FORMAT))
 			self.PEN = struct.unpack(PEN_FORMAT, PENBin)[0]
+			self.handlePEN()
 			print "PEN: %s" % (self.PEN)
-
 		else:
 			self.PEN = None
+#		TODO: Move field name processing here.
+	def handlePEN(self):
+		if self.PEN == 6871:
+			self.InformationElementID = ~REV_BIT & self.InformationElementID
 	def setup_realfield(self):
 		pass
 	def get_realfield(self):
@@ -58,7 +63,7 @@ class ipfix_field:
 			try:
 				record = BSS.find('elementid',text=self.InformationElementID).parent.parent
 			except:
-#				raise Exception("Could not find data type: %s in the database" % (self.InformationElementID))
+				raise Exception("Could not find data type: %s in the database" % (self.InformationElementID))
 				self.ignore = True
 				self.datatype = None
 				self.name = None
@@ -68,8 +73,9 @@ class ipfix_field:
 			if self.PEN == 29305:
 				self.name = self.name + 'Reverse'
 			elif self.PEN == 6871:
-				self.name = self.name + "CERT"
-				self.ignore = True
+				#self.name = self.name + 'CERT'
+				self.name = self.name + 'Reverse'
+				######
 			elif self.PEN:
 				raise Exception("Don't know how to parse pen: %s, ID: %s" % (repr(self.PEN), self.InformationElementID))
 		def readField(self, realtemplate, fd):
