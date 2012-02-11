@@ -15,5 +15,6 @@ class ipfix_datarecord(ipfix_record.ipfix_record):
 		RealTemplate = Template.get_realtemplate()
 		RealTemplate.populate(fd)
 		print "Reading fields for template id: %s, Template: %s" % (self.Set.SetID, Template)
-		raise Exception("not implemented")
+		
+#		raise Exception("not implemented")
 

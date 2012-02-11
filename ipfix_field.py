@@ -1,4 +1,6 @@
 import struct, types
+#Google's IP Address module: http://code.google.com/p/ipaddr-py
+import ipaddr
 from BeautifulSoup import BeautifulStoneSoup
 HEADER_FORMAT = "!HH"
 PEN_FORMAT="!I"
@@ -6,6 +8,7 @@ DEBUG = True
 PEN_BIT = (0x1 << 15)
 XML = file("ipfix.xml").read()
 UINT_BY_LEN = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}
+INT_BY_LEN = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}
 
 class ipfix_field:
 	def __init__(self, Template, fd):
@@ -71,11 +74,21 @@ class ipfix_field:
 				raise Exception("Don't know how to parse pen: %s, ID: %s" % (repr(self.PEN), self.InformationElementID))
 		def readField(self, realtemplate, fd):
 			BinValue = fd.read(self.FieldLength)
-			if 1 == 2:
-				pass
-			if self.datatype == 'dateTimeMilliseconds':
+			if self.datatype == None:
+				#I couldn't find the data type in the dictionary, I should probably just set
+				#the internal value to None, at least to signify null
+				self.value = None
+#				raise Exception("Could not find element id: %s" % (self.InformationElementID))
+			elif self.datatype == 'dateTimeMilliseconds':
 				self.value = struct.unpack('!'+UINT_BY_LEN[self.FieldLength], BinValue)[0]
+			elif self.datatype in ['signed8', 'signed16', 'signed32', 'signed64']:
+				self.value = struct.unpack('!'+INT_BY_LEN[self.FieldLength], BinValue)[0]
+			elif self.datatype in ['octect', 'unsigned8', 'unsigned16', 'unsigned32', 'unsigned64']:
+				self.value = struct.unpack('!'+UINT_BY_LEN[self.FieldLength], BinValue)[0]
+			elif self.datatype == "ipv4Address":
+				IPInt = struct.unpack('!'+UINT_BY_LEN[self.FieldLength], BinValue)[0]
+				self.value = ipaddr.IPv4Address(IPInt)
 			else:
-				raise Warning("Could not understand datatype: %s" % (self.datatype))
+				print "Could not understand datatype: %s" % (self.datatype)
 #			if self.datatype == False
 #			self.value = 

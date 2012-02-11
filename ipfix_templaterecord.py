@@ -34,7 +34,11 @@ class ipfix_templaterecord(ipfix_record.ipfix_record):
 		return realtemplate
 	class ipfix_realtemplate:
 		fields = []
+		values = {}
 		def populate(self, fd):
 			for i in self.fields:
 				print "Setting field: %s" % i			
 				i.readField(self, fd)
+				self.values[i.name] = i
+				setattr(self, i.name, i)
+			print "Populated values: %s" % (self.values)
